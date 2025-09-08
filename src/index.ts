@@ -26,19 +26,30 @@ app.get('/', async (req: Request, res: Response) => {
         res.status(500).send("Variável de ambiente DBPORT não está definida")
         return;
     }
+});
+
+app.get('/produtos', async (req: Request, res: Response) => {
+
     try {
         const connection = await mysql.createConnection({
-            host: process.env.DBHOST,
-            user: process.env.DBUSER,
-            password: process.env.DBPASSWORD,
-            database: process.env.DBNAME,
+            host: process.env.DBHOST as string,
+            user: process.env.DBUSER as string,
+            password: process.env.DBPASSWORD as string,
+            database: process.env.DBNAME as string,
             port: Number(process.env.DBPORT)
-        })
-        res.send("Conectado ao banco de dados com sucesso!");
+        });
+
+        const [rows] = await connection.execute('SELECT * FROM produtos');
         await connection.end();
-    }
-    catch (error) {
-        res.status(500).send("Erro ao conectar ao banco de dados: " + error);
+
+        res.status(200).json(rows);
+
+        } catch (error: any) {
+        console.error('Erro ao buscar produtos:', error);
+        res.status(500).json({
+            erro: 'Erro ao buscar produtos',
+            detalhes: error.message
+        });
     }
 });
 
